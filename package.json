@@ -1,0 +1,20 @@
+{
+  "name": "olympiad-platform",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @repo/api dev\" \"pnpm --filter @repo/realtime dev\" \"pnpm --filter @repo/web dev\"",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "db:migrate": "pnpm --filter @repo/db migrate",
+    "db:generate": "pnpm --filter @repo/db generate",
+    "db:push": "pnpm --filter @repo/db push",
+    "db:seed": "pnpm --filter @repo/db seed",
+    "db:studio": "pnpm --filter @repo/db studio",
+    "bridge": "node sql_pipe_bridge.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  }
+}

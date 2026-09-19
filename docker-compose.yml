@@ -1,0 +1,63 @@
+services:
+  # ============================================================================
+  # SQL Server (2022 Developer Edition for local development)
+  # ============================================================================
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: olympiad-sqlserver
+    restart: unless-stopped
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+
+  # ============================================================================
+  # LiveKit Server (SFU for low-latency WebRTC audio/video/screenshare)
+  # ============================================================================
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: olympiad-livekit
+    restart: unless-stopped
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    environment:
+      - "LIVEKIT_KEYS=devkey: secret"
+    command: --dev --bind 0.0.0.0
+
+  # ============================================================================
+  # MinIO (S3-compatible Object Storage Emulator)
+  # ============================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: olympiad-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  # Helper service to ensure recordings bucket exists in MinIO
+  createbuckets:
+    image: minio/mc:latest
+    container_name: olympiad-minio-mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/edus-recordings || true;
+      /usr/bin/mc anonymous set public myminio/edus-recordings || true;
+      exit 0;
+      "
+
+volumes:
+  minio_data:

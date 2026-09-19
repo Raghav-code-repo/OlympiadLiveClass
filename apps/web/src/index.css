@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Dark theme (default) */
+  --color-bg: #020617;
+  --color-surface: #0f172a;
+  --color-surface-hover: #1e293b;
+  --color-surface-border: #1e293b;
+  --color-border: #334159;
+  --color-border-strong: #475569;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-text-tertiary: #64748b;
+  --color-input-bg: #0f172a;
+  --color-input-border: #334159;
+  --color-scrollbar-track: rgba(15, 23, 42, 0.6);
+  --color-scrollbar-thumb: rgba(51, 65, 85, 0.8);
+}
+
+:root.light {
+  --color-bg: #ffffff;
+  --color-surface: #f8fafc;
+  --color-surface-hover: #f1f5f9;
+  --color-surface-border: #e2e8f0;
+  --color-border: #cbd5e1;
+  --color-border-strong: #94a3b8;
+  --color-text: #1e293b;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-text-tertiary: #94a3b8;
+  --color-input-bg: #f1f5f9;
+  --color-input-border: #cbd5e1;
+  --color-scrollbar-track: rgba(241, 245, 249, 0.6);
+  --color-scrollbar-thumb: rgba(100, 116, 139, 0.8);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    @apply antialiased;
+    font-family: "Inter", sans-serif;
+  }
+}
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* ========================================================== *
+ * Light Theme Overrides
+ * The `light` class is set on <html> (document.documentElement).
+ * These rules swap dark Tailwind utility classes for light
+ * equivalents so the entire app flips to a light palette.
+ * ========================================================== */
+
+/* Solid backgrounds */
+.light .bg-slate-950 { background-color: #ffffff; }
+.light .bg-slate-900 { background-color: #f8fafc; }
+.light .bg-slate-800 { background-color: #f1f5f9; }
+.light .bg-slate-700 { background-color: #e2e8f0; }
+.light .bg-slate-750 { background-color: #cbd5e1; }
+.light .bg-slate-600 { background-color: #94a3b8; }
+.light .bg-sky-950 { background-color: #f0f9ff; }
+
+/* Backgrounds with opacity */
+.light .bg-slate-900\/30 { background-color: rgba(248, 250, 252, 0.3); }
+.light .bg-slate-900\/50 { background-color: rgba(248, 250, 252, 0.5); }
+.light .bg-slate-900\/80 { background-color: rgba(248, 250, 252, 0.8); }
+.light .bg-slate-900\/90 { background-color: rgba(248, 250, 252, 0.9); }
+.light .bg-slate-950\/20 { background-color: rgba(255, 255, 255, 0.2); }
+.light .bg-slate-950\/30 { background-color: rgba(255, 255, 255, 0.3); }
+.light .bg-slate-950\/50 { background-color: rgba(255, 255, 255, 0.5); }
+.light .bg-slate-950\/90 { background-color: rgba(255, 255, 255, 0.9); }
+.light .bg-sky-950\/20 { background-color: rgba(240, 249, 255, 0.3); }
+.light .bg-sky-950\/30 { background-color: rgba(240, 249, 255, 0.3); }
+.light .bg-sky-900\/50 { background-color: rgba(219, 231, 254, 0.5); }
+.light .bg-amber-500\/10 { background-color: rgba(253, 209, 136, 0.3); }
+.light .bg-amber-500\/20 { background-color: rgba(253, 209, 136, 0.35); }
+.light .bg-amber-500\/30 { background-color: rgba(253, 209, 136, 0.4); }
+.light .bg-emerald-950\/20 { background-color: rgba(204, 250, 192, 0.3); }
+.light .bg-emerald-950\/30 { background-color: rgba(204, 250, 192, 0.4); }
+.light .bg-rose-950\/30 { background-color: rgba(254, 205, 205, 0.4); }
+.light .bg-rose-950\/40 { background-color: rgba(254, 205, 205, 0.5); }
+.light .bg-rose-900\/40 { background-color: rgba(254, 156, 156, 0.5); }
+.light .bg-indigo-950\/50 { background-color: rgba(207, 197, 255, 0.5); }
+.light .bg-indigo-950\/40 { background-color: rgba(207, 197, 255, 0.4); }
+
+/* Chat & sidebar specific backgrounds */
+.light .bg-sky-950\/50 { background-color: rgba(173, 216, 230, 0.5); }
+.light .bg-slate-800\/60 { background-color: rgba(241, 245, 249, 0.6); }
+.light .bg-slate-900\/95 { background-color: rgba(248, 250, 252, 0.95); }
+.light .bg-slate-900\/80 { background-color: rgba(248, 250, 252, 0.8); }
+.light .bg-amber-500\/10 { background-color: rgba(253, 209, 136, 0.3); }
+.light .bg-indigo-500\/20 { background-color: rgba(165, 180, 254, 0.4); }
+.light .bg-emerald-950\/20 { background-color: rgba(204, 250, 192, 0.3); }
+.light .bg-emerald-950\/30 { background-color: rgba(204, 250, 192, 0.4); }
+.light .bg-sky-600\/20 { background-color: rgba(173, 216, 230, 0.3); }
+.light .bg-emerald-500\/30 { background-color: rgba(165, 251, 191, 0.4); }
+
+/* Modal overlays & video placeholders */
+.light .bg-black\/70 { background-color: rgba(0, 0, 0, 0.3); }
+.light .bg-black\/80 { background-color: rgba(0, 0, 0, 0.5); }
+.light .bg-slate-950\/60 { background-color: rgba(255, 255, 255, 0.6); }
+.light .bg-slate-950\/80 { background-color: rgba(255, 255, 255, 0.8); }
+.light .bg-sky-950\/40 { background-color: rgba(240, 249, 255, 0.4); }
+.light .bg-slate-900\/60 { background-color: rgba(248, 250, 252, 0.6); }
+.light .bg-slate-800\/50 { background-color: rgba(241, 245, 249, 0.5); }
+.light .bg-slate-800\/80 { background-color: rgba(241, 245, 249, 0.8); }
+.light .bg-slate-800\/60 { background-color: rgba(241, 245, 249, 0.6); }
+.light .bg-slate-900\/40 { background-color: rgba(248, 250, 252, 0.4); }
+.light .bg-sky-600\/30 { background-color: rgba(173, 216, 230, 0.4); }
+.light .bg-amber-600\/30 { background-color: rgba(217, 119, 6, 0.3); }
+.light .bg-amber-500\/50 { background-color: rgba(253, 209, 136, 0.5); }
+
+/* Borders with opacity */
+.light .border-slate-800\/80 { border-color: rgba(226, 232, 240, 0.8); }
+.light .border-slate-800\/40 { border-color: rgba(226, 232, 240, 0.4); }
+.light .border-slate-800\/60 { border-color: rgba(226, 232, 240, 0.6); }
+.light .border-slate-750 { border-color: #94a3b8; }
+.light .border-sky-800\/40 { border-color: rgba(173, 216, 230, 0.4); }
+.light .border-amber-500\/20 { border-color: rgba(253, 209, 136, 0.2); }
+.light .border-amber-500\/30 { border-color: rgba(253, 209, 136, 0.3); }
+.light .border-amber-500\/40 { border-color: rgba(253, 209, 136, 0.4); }
+.light .border-emerald-500\/30 { border-color: rgba(204, 250, 192, 0.4); }
+.light .border-sky-800 { border-color: #7dd3fc; }
+.light .border-rose-900\/40 { border-color: rgba(254, 156, 156, 0.5); }
+.light .border-rose-900\/30 { border-color: rgba(254, 156, 156, 0.4); }
+.light .border-indigo-950\/50 { border-color: rgba(207, 197, 255, 0.5); }
+.light .border-rose-950\/30 { border-color: rgba(254, 156, 156, 0.4); }
+.light .border-rose-950\/40 { border-color: rgba(254, 156, 156, 0.5); }
+
+/* Dividers */
+.light .divide-slate-800\/60 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(226, 232, 240, 0.6);
+}
+
+/* Solid borders */
+.light .border-slate-800 { border-color: #e2e8f0; }
+.light .border-slate-700 { border-color: #cbd5e1; }
+.light .border-sky-500\/20 { border-color: rgba(2, 132, 199, 0.2); }
+
+/* Text colors */
+.light .text-slate-100 { color: #1e293b; }
+.light .text-slate-200 { color: #334159; }
+.light .text-slate-300 { color: #475569; }
+.light .text-slate-400 { color: #64748b; }
+.light .text-slate-500 { color: #64748b; }
+.light .text-white { color: #1e293b; }
+.light .text-sky-400 { color: #0284c7; }
+.light .text-sky-300 { color: #0369a1; }
+.light .text-sky-200 { color: #0369a1; }
+.light .text-emerald-400 { color: #16a34a; }
+.light .text-amber-400 { color: #d97706; }
+.light .text-indigo-400 { color: #4f46e5; }
+.light .text-slate-50 { color: #1e293b; }
+
+/* Background overrides for light text on dark */
+.light .bg-slate-50 { background-color: #f8fafc; }
+.light .bg-slate-100 { background-color: #f1f5f9; }
+
+/* Gradient overrides */
+.light .from-slate-900 { --tw-gradient-from: #f8fafc; --tw-gradient-to: #ffffff; }
+.light .to-slate-900 { --tw-gradient-to: #f8fafc; }
+
+/* Focus rings */
+.light .ring-sky-500 { --tw-ring-color: #0284c7; }
+.light .ring-sky-600 { --tw-ring-color: #0369a1; }
+
+/* Input placeholder */
+.light ::placeholder { color: #94a3b8; }
+
+/* ========================================================== *
+ * Premium Global Enhancements
+ * ========================================================== */
+
+/* Smooth transitions for interactive elements */
+button,
+input,
+textarea,
+select {
+  transition-property: color, background-color, border-color,
+    box-shadow, transform, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: none;
+}
+
+/* Custom select arrow */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+.light select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+
+/* Smooth scrollbar track fade */
+* {
+  scrollbar-width: thin;
+}
+

@@ -1,0 +1,302 @@
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String            @id @default(cuid())
+  email           String            @unique
+  passwordHash    String
+  name            String
+  role            String            @default("STUDENT") // ADMIN | TEACHER | STUDENT
+  isEmailVerified Boolean           @default(false)
+  avatarUrl       String?
+  createdAt       DateTime          @default(now()) @db.DateTime2
+  updatedAt       DateTime          @updatedAt @db.DateTime2
+
+  // Relations
+  enrollments      BatchEnrollment[] // Cascade from User
+  refreshTokens    RefreshToken[]    // Cascade from User
+  classesTaught    Class[]           // NoAction
+  questionsCreated Question[]        // NoAction
+  quizzesCreated   Quiz[]            // NoAction
+  attendances      Attendance[]      // NoAction (Cascade from Class)
+  chatMessages     ChatMessage[]     // NoAction (Cascade from Class)
+  attempts         Attempt[]         // NoAction (Cascade from Quiz)
+  answers          Answer[]          // NoAction (Cascade from Attempt)
+  approvedEnrollments BatchEnrollment[] @relation("ApproverEnrollments")
+  classEnrollments ClassEnrollment[] @relation("ClassStudentEnrollments")
+  approvedClasses ClassEnrollment[] @relation("ClassApproverEnrollments")
+  subjectsTaught  Subject[]       @relation("SubjectTeacher")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  expiresAt DateTime @db.DateTime2
+  createdAt DateTime @default(now()) @db.DateTime2
+
+  @@index([userId])
+}
+
+model Batch {
+  id          String            @id @default(cuid())
+  name        String
+  description String?           @db.NVarChar(Max)
+  code        String            @unique
+  createdAt   DateTime          @default(now()) @db.DateTime2
+  updatedAt   DateTime          @updatedAt @db.DateTime2
+
+  // Relations
+  enrollments BatchEnrollment[] // Cascade from Batch? No, Cascade from User to avoid diamond.
+  classes     Class[]           // Cascade from Batch
+  quizzes     Quiz[]            // NoAction
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  @db.NVarChar(Max)
+  teacherId   String?
+  teacher     User?    @relation("SubjectTeacher", fields: [teacherId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt   DateTime @default(now()) @db.DateTime2
+  updatedAt   DateTime @updatedAt @db.DateTime2
+
+  @@index([teacherId])
+}
+
+model BatchEnrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  batchId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  batch     Batch    @relation(fields: [batchId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  joinedAt  DateTime @default(now()) @db.DateTime2
+  status    String   @default("ACTIVE") // PENDING | ACTIVE | REJECTED | EXPIRED
+  approvedById String? // Admin/Teacher who approved (for PENDING -> ACTIVE)
+  approvedBy   User? @relation("ApproverEnrollments", fields: [approvedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approvedAt   DateTime? @db.DateTime2
+
+  @@unique([userId, batchId])
+  @@index([batchId])
+  @@index([userId])
+}
+
+model Class {
+  id            String         @id @default(cuid())
+  title         String
+  description   String?        @db.NVarChar(Max)
+  subject       String
+  batchId       String
+  batch         Batch          @relation(fields: [batchId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  teacherId     String
+  teacher       User           @relation(fields: [teacherId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  status        String         @default("SCHEDULED") // SCHEDULED | LIVE | COMPLETED | CANCELLED
+  scheduledAt   DateTime       @db.DateTime2
+  durationMins  Int
+  actualStartAt DateTime?      @db.DateTime2
+  actualEndAt   DateTime?      @db.DateTime2
+  createdAt     DateTime       @default(now()) @db.DateTime2
+  updatedAt     DateTime       @updatedAt @db.DateTime2
+
+  // Relations
+  attendances   Attendance[]   // Cascade from Class
+  chatMessages  ChatMessage[]  // Cascade from Class
+  recordings    Recording[]    // Cascade from Class
+  quizzes       ClassQuiz[]    // Cascade from Class
+  classStudents ClassEnrollment[]
+
+  @@index([batchId])
+  @@index([teacherId])
+  @@index([scheduledAt])
+}
+
+model ClassEnrollment {
+  id          String   @id @default(cuid())
+  classId     String
+  userId      String
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user        User     @relation("ClassStudentEnrollments", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  enrolledAt  DateTime @default(now()) @db.DateTime2
+  status      String   @default("PENDING") // PENDING | APPROVED | REJECTED | EXPIRED
+  approvedById String?
+  approvedBy   User?   @relation("ClassApproverEnrollments", fields: [approvedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approvedAt   DateTime? @db.DateTime2
+
+  @@unique([classId, userId])
+  @@index([classId])
+  @@index([userId])
+}
+
+model Attendance {
+  id            String    @id @default(cuid())
+  classId       String
+  userId        String
+  class         Class     @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  joinedAt      DateTime  @default(now()) @db.DateTime2
+  leftAt        DateTime? @db.DateTime2
+  watchDuration Int       @default(0) // computed watch minutes
+
+  @@index([classId, userId])
+  @@index([userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  classId   String
+  userId    String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  message   String   @db.NVarChar(Max)
+  isPinned  Boolean  @default(false)
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.DateTime2
+
+  @@index([classId, createdAt])
+  @@index([userId])
+}
+
+model Question {
+  id               String         @id @default(cuid())
+  stem             String         @db.NVarChar(Max)
+  imageUrl         String?
+  type             String         @default("MCQ_SINGLE") // MCQ_SINGLE | MCQ_MULTI | NUMERIC | TRUE_FALSE
+  optionsJson      String         @db.NVarChar(Max) // Serialized JSON array of options
+  correctAnswer    String         @db.NVarChar(Max) // String or serialized value
+  explanation      String?        @db.NVarChar(Max)
+  difficulty       String         @default("MEDIUM") // EASY | MEDIUM | HARD | OLYMPIAD
+  subject          String
+  topic            String
+  marks            Decimal        @default(4.00) @db.Decimal(10, 2)
+  negativeMarks    Decimal        @default(1.00) @db.Decimal(10, 2)
+  timeLimitSeconds Int            @default(60)
+  createdById      String
+  createdBy        User           @relation(fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt        DateTime       @default(now()) @db.DateTime2
+  updatedAt        DateTime       @updatedAt @db.DateTime2
+
+  // Relations
+  quizQuestions    QuizQuestion[] // NoAction
+  answers          Answer[]       // NoAction
+
+  @@index([subject, topic])
+  @@index([difficulty])
+}
+
+model Quiz {
+  id          String         @id @default(cuid())
+  title       String
+  description String?        @db.NVarChar(Max)
+  teacherId   String
+  teacher     User           @relation(fields: [teacherId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  batchId     String?
+  batch       Batch?         @relation(fields: [batchId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  dueDate     DateTime?      @db.DateTime2
+  isLiveOnly  Boolean        @default(true)
+  totalMarks  Decimal        @default(0.00) @db.Decimal(10, 2)
+  createdAt   DateTime       @default(now()) @db.DateTime2
+  updatedAt   DateTime       @updatedAt @db.DateTime2
+
+  // Relations
+  questions   QuizQuestion[] // Cascade from Quiz
+  classes     ClassQuiz[]    // Cascade from Quiz
+  attempts    Attempt[]      // Cascade from Quiz
+
+  @@index([teacherId])
+  @@index([batchId])
+}
+
+model ClassQuiz {
+  id        String   @id @default(cuid())
+  classId   String
+  quizId    String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @db.DateTime2
+
+  @@unique([classId, quizId])
+  @@index([classId])
+  @@index([quizId])
+}
+
+model QuizQuestion {
+  id         String   @id @default(cuid())
+  quizId     String
+  questionId String
+  orderIndex Int
+  marks      Decimal? @db.Decimal(10, 2)
+  quiz       Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([quizId, questionId])
+  @@index([quizId, orderIndex])
+  @@index([questionId])
+}
+
+model Attempt {
+  id          String    @id @default(cuid())
+  quizId      String
+  userId      String
+  classId     String?
+  quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user        User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  status      String    @default("IN_PROGRESS") // IN_PROGRESS | SUBMITTED | TIMED_OUT
+  score       Decimal   @default(0.00) @db.Decimal(10, 2)
+  maxScore    Decimal   @default(0.00) @db.Decimal(10, 2)
+  accuracy    Decimal   @default(0.00) @db.Decimal(10, 2)
+  timeTakenMs Int       @default(0)
+  startedAt   DateTime  @default(now()) @db.DateTime2
+  submittedAt DateTime? @db.DateTime2
+
+  // Relations
+  answers     Answer[]  // Cascade from Attempt
+
+  @@index([quizId, userId])
+  @@index([userId])
+  @@index([classId])
+}
+
+model Answer {
+  id               String   @id @default(cuid())
+  attemptId        String
+  questionId       String
+  userId           String
+  attempt          Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  question         Question @relation(fields: [questionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user             User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  payloadJson      String   @db.NVarChar(Max) // Serialized student answer
+  isCorrect        Boolean  @default(false)
+  scoreAwarded     Decimal  @default(0.00) @db.Decimal(10, 2)
+  timeSpentSeconds Int      @default(0)
+  createdAt        DateTime @default(now()) @db.DateTime2
+
+  @@index([userId, createdAt])
+  @@index([attemptId])
+  @@index([questionId])
+}
+
+model Recording {
+  id             String   @id @default(cuid())
+  classId        String
+  class          Class    @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  durationSec    Int      @default(0)
+  sizeBytes      BigInt   @default(0)
+  storageKey     String
+  hlsPlaylistKey String?
+  thumbnailKey   String?
+  status         String   @default("PENDING") // PENDING | PROCESSING | READY | FAILED
+  egressId       String?
+  createdAt      DateTime @default(now()) @db.DateTime2
+  updatedAt      DateTime @updatedAt @db.DateTime2
+
+  @@index([classId])
+  @@index([status])
+}
