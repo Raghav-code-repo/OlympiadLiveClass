@@ -72,13 +72,22 @@ export const Navbar: React.FC = () => {
             )}
 
             {user.role === "ADMIN" && (
-              <Link
-                to="/subjects"
-                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition-colors flex items-center gap-2 light:text-slate-600 light:hover:text-slate-900 light:hover:bg-slate-200"
-              >
-                <Layers className="w-4 h-4 text-purple-400" />
-                Subjects
-              </Link>
+              <>
+                <Link
+                  to="/subjects"
+                  className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition-colors flex items-center gap-2 light:text-slate-600 light:hover:text-slate-900 light:hover:bg-slate-200"
+                >
+                  <Layers className="w-4 h-4 text-purple-400" />
+                  Subjects
+                </Link>
+                <Link
+                  to="/batches"
+                  className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition-colors flex items-center gap-2 light:text-slate-600 light:hover:text-slate-900 light:hover:bg-slate-200"
+                >
+                  <Users className="w-4 h-4 text-teal-400" />
+                  Batches
+                </Link>
+              </>
             )}
 
             <Link

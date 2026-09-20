@@ -6,8 +6,9 @@ import {
   useTracks,
   VideoTrack,
   useParticipants,
+  useRoomContext,
 } from "@livekit/components-react";
-import { Track } from "livekit-client";
+import { Track, Room } from "livekit-client";
 import { useAuthStore } from "../store/useAuthStore";
 import { apiRequest } from "../lib/api";
 import { getSocket } from "../lib/socket";
@@ -137,6 +138,18 @@ function CustomVideoGrid({ isTeacher }: { isTeacher: boolean }) {
   );
 }
 
+// Bridge: extracts the Room instance from LiveKitRoom context so parent
+// can call localParticipant.setMicrophoneEnabled/setCameraEnabled/etc.
+const RoomContextBridge: React.FC<{ onRoomReady: (room: Room) => void }> = ({
+  onRoomReady,
+}) => {
+  const room = useRoomContext();
+  useEffect(() => {
+    onRoomReady(room);
+  }, [room, onRoomReady]);
+  return null;
+};
+
 export const LiveClassroom: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuthStore();
@@ -148,6 +161,7 @@ export const LiveClassroom: React.FC = () => {
   const [isPublisher, setIsPublisher] = useState<boolean>(false);
   const [classInfo, setClassInfo] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const roomRef = useRef<Room | null>(null);
 
   // Audio / Video states
   const [audioEnabled, setAudioEnabled] = useState(false);
@@ -200,11 +214,6 @@ export const LiveClassroom: React.FC = () => {
         setLiveKitToken(tokenRes.token);
         setLiveKitUrl(tokenRes.livekitUrl || "ws://localhost:7880");
         setIsPublisher(tokenRes.isPublisher);
-
-        if (tokenRes.isPublisher) {
-          setAudioEnabled(true);
-          setVideoEnabled(true);
-        }
 
         // If teacher, fetch available questions for launching
         if (tokenRes.isPublisher) {
@@ -340,13 +349,46 @@ export const LiveClassroom: React.FC = () => {
     setNewMessage("");
   };
 
-  const handleToggleHand = () => {
+   const handleToggleHand = () => {
     if (!id) return;
     const socket = getSocket();
     if (hasHandRaised) {
       socket.emit(SocketEvents.HAND_LOWER, { classId: id });
     } else {
       socket.emit(SocketEvents.HAND_RAISE, { classId: id });
+    }
+  };
+
+  const handleToggleAudio = async () => {
+    if (!roomRef.current) return;
+    const newEnabled = !audioEnabled;
+    try {
+      await roomRef.current.localParticipant.setMicrophoneEnabled(newEnabled);
+      setAudioEnabled(newEnabled);
+    } catch (err: any) {
+      console.error("Failed to toggle microphone:", err);
+    }
+  };
+
+  const handleToggleVideo = async () => {
+    if (!roomRef.current) return;
+    const newEnabled = !videoEnabled;
+    try {
+      await roomRef.current.localParticipant.setCameraEnabled(newEnabled);
+      setVideoEnabled(newEnabled);
+    } catch (err: any) {
+      console.error("Failed to toggle camera:", err);
+    }
+  };
+
+  const handleToggleScreen = async () => {
+    if (!roomRef.current) return;
+    const newEnabled = !screenShareEnabled;
+    try {
+      await roomRef.current.localParticipant.setScreenShareEnabled(newEnabled);
+      setScreenShareEnabled(newEnabled);
+    } catch (err: any) {
+      console.error("Failed to toggle screen share:", err);
     }
   };
 
@@ -462,14 +504,18 @@ export const LiveClassroom: React.FC = () => {
             <LiveKitRoom
               token={liveKitToken}
               serverUrl={liveKitUrl}
-              video={videoEnabled}
-              audio={audioEnabled}
-              screen={screenShareEnabled}
+              video={isPublisher}
+              audio={isPublisher}
               connect={true}
               className="w-full h-full flex flex-col relative"
             >
               <RoomAudioRenderer />
               <CustomVideoGrid isTeacher={isPublisher} />
+              <RoomContextBridge
+                onRoomReady={(room) => {
+                  roomRef.current = room;
+                }}
+              />
             </LiveKitRoom>
           ) : (
             <div className="flex-1 flex items-center justify-center text-slate-500">
@@ -481,7 +527,7 @@ export const LiveClassroom: React.FC = () => {
            <div className="h-16 border-t border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900/95 backdrop-blur px-4 flex items-center justify-between z-20">
              <div className="flex items-center gap-2">
               <button
-                onClick={() => setAudioEnabled(!audioEnabled)}
+                 onClick={handleToggleAudio}
                 className={`p-2.5 rounded-xl border transition-all ${
                   audioEnabled
                     ? "bg-slate-800 text-white border-slate-700"
@@ -493,7 +539,7 @@ export const LiveClassroom: React.FC = () => {
               </button>
 
               <button
-                onClick={() => setVideoEnabled(!videoEnabled)}
+                 onClick={handleToggleVideo}
                 className={`p-2.5 rounded-xl border transition-all ${
                   videoEnabled
                     ? "bg-slate-800 text-white border-slate-700"
@@ -506,7 +552,7 @@ export const LiveClassroom: React.FC = () => {
 
               {isPublisher ? (
                 <button
-                  onClick={() => setScreenShareEnabled(!screenShareEnabled)}
+                   onClick={handleToggleScreen}
                   className={`p-2.5 rounded-xl border transition-all ${
                     screenShareEnabled
                       ? "bg-sky-600 text-white border-sky-500"

@@ -1,6 +1,6 @@
 import { Router, Response } from "express";
 import { prisma } from "@repo/db";
-import { CreateBatchSchema } from "@repo/shared";
+import { CreateBatchSchema, UpdateBatchSchema } from "@repo/shared";
 import {
   authenticate,
   AuthenticatedRequest,
@@ -91,9 +91,70 @@ router.post(
         data: { name, description, code },
       });
 
-      res.status(201).json({ batch });
+       res.status(201).json({ batch });
     } catch (err: any) {
       res.status(500).json({ error: "Failed to create batch" });
+    }
+  }
+);
+
+// PATCH /api/batches/:id - update batch (ADMIN only)
+router.patch(
+  "/:id",
+  authenticate,
+  requireRole(["ADMIN"]),
+  validateBody(UpdateBatchSchema),
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { name, description, code } = req.body;
+
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (code !== undefined) {
+        const existing = await prisma.batch.findFirst({
+          where: { code, id: { not: id } },
+        });
+        if (existing) {
+          res.status(409).json({ error: "Batch code already exists" });
+          return;
+        }
+        updateData.code = code;
+      }
+
+      const batch = await prisma.batch.update({
+        where: { id },
+        data: updateData,
+      });
+
+      res.json({ batch });
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        res.status(404).json({ error: "Batch not found" });
+      } else {
+        res.status(500).json({ error: "Failed to update batch" });
+      }
+    }
+  }
+);
+
+// DELETE /api/batches/:id - delete batch (ADMIN only)
+router.delete(
+  "/:id",
+  authenticate,
+  requireRole(["ADMIN"]),
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      await prisma.batch.delete({ where: { id } });
+      res.json({ message: "Batch deleted successfully" });
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        res.status(404).json({ error: "Batch not found" });
+      } else {
+        res.status(500).json({ error: "Failed to delete batch" });
+      }
     }
   }
 );

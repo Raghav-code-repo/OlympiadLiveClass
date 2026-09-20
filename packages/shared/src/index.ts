@@ -108,6 +108,13 @@ export const CreateBatchSchema = z.object({
 });
 export type CreateBatchDto = z.infer<typeof CreateBatchSchema>;
 
+export const UpdateBatchSchema = z.object({
+  name: z.string().min(3).optional(),
+  description: z.string().optional(),
+  code: z.string().min(3).optional(),
+});
+export type UpdateBatchDto = z.infer<typeof UpdateBatchSchema>;
+
 export const CreateSubjectSchema = z.object({
   name: z.string().min(2, "Subject name must be at least 2 characters"),
   description: z.string().optional(),

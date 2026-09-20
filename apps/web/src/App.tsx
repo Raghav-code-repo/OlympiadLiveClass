@@ -11,6 +11,7 @@ import { QuizBuilder } from "./pages/QuizBuilder";
 import { RecordingPlayback } from "./pages/RecordingPlayback";
 import { Analytics } from "./pages/Analytics";
 import { SubjectManagement } from "./pages/SubjectManagement";
+import { BatchManagement } from "./pages/BatchManagement";
 
 export const App: React.FC = () => {
   return (
@@ -99,6 +100,18 @@ export const App: React.FC = () => {
                 <Navbar />
                 <main className="flex-1">
                   <SubjectManagement />
+                </main>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/batches"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <Navbar />
+                <main className="flex-1">
+                  <BatchManagement />
                 </main>
               </ProtectedRoute>
             }
