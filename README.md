@@ -1,4 +1,4 @@
-# OlympiadLiveClass
+# OlympiadLiveClass - Raghav
 
 A clean monorepo for the **EduSphere Olympiad Live Class Platform**, supporting live classes, real-time communication, quizzes, student participation, and teacher-led sessions.
 
@@ -787,17 +787,17 @@ For a clean deployment, follow this order:
 
 The platform is designed to support:
 
-* 👨‍🏫 Teacher-led live classes
-* 👨‍🎓 Student participation
-* 🎥 Live video classes
-* 📝 Real-time quizzes
-* ⏱️ Timed questions
-* 📊 Student progress tracking
-* 🏆 Leaderboards
-* 🔄 Real-time communication
-* 🔐 Authentication and authorization
-* ☁️ Cloud deployment
-* 📱 Future mobile application support
+- 👨‍🏫 Teacher-led live classes
+- 👨‍🎓 Student participation
+- 🎥 Live video classes
+- 📝 Real-time quizzes
+- ⏱️ Timed questions
+- 📊 Student progress tracking
+- 🏆 Leaderboards
+- 🔄 Real-time communication
+- 🔐 Authentication and authorization
+- ☁️ Cloud deployment
+- 📱 Future mobile application support
 
 ---
 
