@@ -32,11 +32,19 @@ export async function handleLiveKitWebhook(
       const durationSec = Math.round((egressInfo?.duration || 0) / 1000000000);
       const sizeBytes = BigInt(fileResults?.size || 0);
 
+      const classData = await prisma.class.findUnique({
+        where: { id: classId },
+        select: { title: true, actualStartAt: true },
+      });
+      const startedAt = classData?.actualStartAt ?? new Date();
+
       // Create initial DB record in PROCESSING status
       const recording = await prisma.recording.create({
         data: {
           classId,
-          egressId,
+          title: classData?.title ?? `Recording ${startedAt.toLocaleString()}`,
+          livekitEgressId: egressId,
+          startedAt,
           durationSec,
           sizeBytes,
           storageKey: filePath || `recordings/${classId}/composite.mp4`,

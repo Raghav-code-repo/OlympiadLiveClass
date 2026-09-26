@@ -16,10 +16,21 @@ export interface StorageAdapter {
     body: Buffer | Uint8Array | Readable,
     contentType?: string
   ): Promise<string>;
-  getSignedUrl(key: string, expiresInSec?: number): Promise<string>;
+  uploadFile(localPath: string, storageKey: string): Promise<string>;
+  getSignedUrl(storageKey: string, ttlSeconds: number): Promise<string>;
+  deleteFile(storageKey: string): Promise<void>;
   delete(key: string): Promise<void>;
   exists(key: string): Promise<boolean>;
 }
+
+const contentTypeFor = (key: string) => {
+  if (key.toLowerCase().endsWith(".jpg") || key.toLowerCase().endsWith(".jpeg")) return "image/jpeg";
+  if (key.toLowerCase().endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
+  if (key.toLowerCase().endsWith(".ts")) return "video/mp2t";
+  if (key.toLowerCase().endsWith(".mp4")) return "video/mp4";
+  return "application/octet-stream";
+};
+
 
 export class LocalStorageAdapter implements StorageAdapter {
   private baseDir: string;
@@ -56,8 +67,23 @@ export class LocalStorageAdapter implements StorageAdapter {
     return key;
   }
 
-  async getSignedUrl(key: string, _expiresInSec: number = 3600): Promise<string> {
-    return `/api/storage/files/${encodeURIComponent(key)}?token=local-dev-token`;
+  async uploadFile(localPath: string, storageKey: string): Promise<string> {
+    const stream = fs.createReadStream(localPath);
+    try {
+      await this.upload(storageKey, stream, contentTypeFor(storageKey));
+      return this.getSignedUrl(storageKey, 3600);
+    } catch (error) {
+      stream.destroy();
+      throw error;
+    }
+  }
+
+  async getSignedUrl(storageKey: string, ttlSeconds: number): Promise<string> {
+    return `/api/storage/files/${encodeURIComponent(storageKey)}?token=local-dev-token&expires=${ttlSeconds}`;
+  }
+
+  async deleteFile(storageKey: string): Promise<void> {
+    await this.delete(storageKey);
   }
 
   async delete(key: string): Promise<void> {
@@ -115,12 +141,27 @@ export class S3StorageAdapter implements StorageAdapter {
     return key;
   }
 
-  async getSignedUrl(key: string, expiresInSec: number = 3600): Promise<string> {
+  async uploadFile(localPath: string, storageKey: string): Promise<string> {
+    const stream = fs.createReadStream(localPath);
+    try {
+      await this.upload(storageKey, stream, contentTypeFor(storageKey));
+      return this.getSignedUrl(storageKey, 3600);
+    } catch (error) {
+      stream.destroy();
+      throw error;
+    }
+  }
+
+  async getSignedUrl(storageKey: string, ttlSeconds: number): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
-      Key: key,
+      Key: storageKey,
     });
-    return getSignedUrl(this.s3, command, { expiresIn: expiresInSec });
+    return getSignedUrl(this.s3, command, { expiresIn: ttlSeconds });
+  }
+
+  async deleteFile(storageKey: string): Promise<void> {
+    await this.delete(storageKey);
   }
 
   async delete(key: string): Promise<void> {

@@ -108,7 +108,7 @@ model Class {
   // Relations
   attendances   Attendance[]   // Cascade from Class
   chatMessages  ChatMessage[]  // Cascade from Class
-  recordings    Recording[]    // Cascade from Class
+  recordings    Recording[]    // NoAction
   quizzes       ClassQuiz[]    // Cascade from Class
   classStudents ClassEnrollment[]
 
@@ -284,19 +284,21 @@ model Answer {
 }
 
 model Recording {
-  id             String   @id @default(cuid())
-  classId        String
-  class          Class    @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  durationSec    Int      @default(0)
-  sizeBytes      BigInt   @default(0)
-  storageKey     String
-  hlsPlaylistKey String?
-  thumbnailKey   String?
-  status         String   @default("PENDING") // PENDING | PROCESSING | READY | FAILED
-  egressId       String?
-  createdAt      DateTime @default(now()) @db.DateTime2
-  updatedAt      DateTime @updatedAt @db.DateTime2
+  id              String   @id @default(cuid())
+  classId         String
+  class           Class    @relation(fields: [classId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  title           String   @db.NVarChar(255)
+  status          String   @db.NVarChar(50)
+  startedAt       DateTime @db.DateTime2
+  endedAt         DateTime? @db.DateTime2
+  durationSec     Int?
+  sizeBytes       BigInt?
+  storageKey      String?  @db.NVarChar(500)
+  hlsPlaylistKey  String?  @db.NVarChar(500)
+  thumbnailKey    String?  @db.NVarChar(500)
+  livekitEgressId String?  @db.NVarChar(255)
+  createdAt       DateTime @default(now()) @db.DateTime2
+  updatedAt       DateTime @updatedAt @db.DateTime2
 
   @@index([classId])
-  @@index([status])
 }

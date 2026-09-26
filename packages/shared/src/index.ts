@@ -18,12 +18,39 @@ export const DifficultySchema = z.enum(["EASY", "MEDIUM", "HARD", "OLYMPIAD"]);
 export type Difficulty = z.infer<typeof DifficultySchema>;
 
 export const RecordingStatusSchema = z.enum([
-  "PENDING",
+  "RECORDING",
   "PROCESSING",
   "READY",
   "FAILED",
 ]);
 export type RecordingStatus = z.infer<typeof RecordingStatusSchema>;
+
+export const RecordingSchema = z.object({
+  id: z.string(),
+  classId: z.string(),
+  className: z.string(),
+  title: z.string(),
+  status: RecordingStatusSchema,
+  startedAt: z.string(),
+  endedAt: z.string().nullable().optional(),
+  durationSec: z.number().int().nonnegative().nullable().optional(),
+  sizeBytes: z.string().optional(),
+  thumbnailUrl: z.string().nullable().optional(),
+  hlsUrl: z.string().nullable().optional(),
+  createdAt: z.string(),
+});
+export type Recording = z.infer<typeof RecordingSchema>;
+
+export const StartRecordingSchema = z.object({
+  classId: z.string().min(1),
+});
+export type StartRecordingRequest = z.infer<typeof StartRecordingSchema>;
+
+export const StopRecordingSchema = z.object({
+  classId: z.string().min(1),
+  egressId: z.string().min(1),
+});
+export type StopRecordingRequest = z.infer<typeof StopRecordingSchema>;
 
 export const ClassStatusSchema = z.enum([
   "SCHEDULED",
